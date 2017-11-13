@@ -4,7 +4,10 @@ CC = $(CROSS_COMPILE)gcc
 
 $(shell mkdir -p bin)
 
-all: getdtb
+all: getdtb reboot
+
+reboot: reboot.c
+	$(CC) -o bin/reboot reboot.c
 
 getdtb: getdtb.c
 	$(CC) -o bin/getdtb getdtb.c
