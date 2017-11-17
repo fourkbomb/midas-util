@@ -49,13 +49,13 @@ int main(int argc, char* argv[]) {
 	ssize_t ret;
 
 	if (argc < 2) {
-		printf("usage: %s <dtb-base>\n", argv[0]);
+		fprintf(stderr, "usage: %s <dtb-base>\n", argv[0]);
 		return 1;
 	}
 
 	int fd = open("/proc/cmdline", O_RDONLY);
 	if (fd < 0) {
-		printf("Failed to to read cmdline: %s\n", strerror(errno));
+		fprintf(stderr, "Failed to to read cmdline: %s\n", strerror(errno));
 		return 1;
 	}
 
@@ -68,24 +68,24 @@ int main(int argc, char* argv[]) {
 	}
 
 	if (ret <= 0) {
-		printf("Failed to find androidboot.bootloader parameter: %s\n", (ret == 0 ? "EOF" : strerror(errno)));
+		fprintf(stderr, "Failed to find androidboot.bootloader parameter: %s\n", (ret == 0 ? "EOF" : strerror(errno)));
 		goto err_find;
 	}
 
 	for (int i = 0; devices[i].bl_name != NULL; i++) {
 		device = &devices[i];
-		printf("strcmp(%s, %s) = ", bl_name, device->bl_name);
+		fprintf(stderr, "strcmp(%s, %s) = ", bl_name, device->bl_name);
 		if (strncmp(bl_name, device->bl_name, BL_NAME_LEN) != 0) {
 			device = NULL;
-			printf("no match\n");
+			fprintf(stderr, "no match\n");
 		} else {
-			printf("match\n");
+			fprintf(stderr, "match\n");
 			break;
 		}
 	}
 
 	if (device == NULL) {
-		printf("Couldn't find DTB matching device '%s'\n", bl_name);
+		fprintf(stderr, "Couldn't find DTB matching device '%s'\n", bl_name);
 		goto err_find;
 	}
 
@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
 
 		dtbfd = open(buf, O_RDONLY);
 		if (dtbfd < 0) {
-			printf("Failed to open dtb '%s': %s\n", buf, strerror(errno));
+			fprintf(stderr, "Failed to open dtb '%s': %s\n", buf, strerror(errno));
 			continue;
 		}
 
@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	if (dtbfd < 0) {
-		printf("no dtb found\n");
+		fprintf(stderr, "no dtb found\n");
 		return 1;
 	}
 	printf("%s\n", buf);
