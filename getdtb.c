@@ -29,10 +29,10 @@ struct device devices[] = {
 		.dtbs = {"m3", "galaxy-s3-common"},
 	}, {
 		.bl_name = "N7100",
-		.dtbs = {"t0-3g", "t0-common"},
+		.dtbs = {"t0-3g", "t0"},
 	}, {
 		.bl_name = "N7105",
-		.dtbs = {"t0-lte", "t0-common"},
+		.dtbs = {"t0-lte", "t0"},
 	}, {
 		// sentinel
 		.bl_name = NULL,
