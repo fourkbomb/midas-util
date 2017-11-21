@@ -14,3 +14,5 @@ bin/reboot: reboot.c
 
 bin/getdtb: getdtb.c
 	$(CC) -o bin/getdtb getdtb.c
+
+include boot/Makefile
