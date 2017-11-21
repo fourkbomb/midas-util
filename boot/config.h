@@ -60,7 +60,7 @@ enum overlay_mode {
 struct gpio_overlay_cfg {
 	// linux chip name of pin bank. converted from "gpa1" form by config parser
 	char *bank;
-	// pin number, e.g. 4 
+	// pin number, e.g. 4
 	int pin;
 	// 1 (pin is HIGH) or 0 (pin is LOW).
 	// if pin matches value here, overlay will be applied
@@ -71,7 +71,7 @@ struct gpio_overlay_cfg {
 struct overlay_cfg {
 	// path of overlay, relative to dtbFolder
 	char *path;
-	// section name in ini 
+	// section name in ini
 	char *name;
 	// overlay mode
 	enum overlay_mode mode;

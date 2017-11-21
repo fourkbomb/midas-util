@@ -15,5 +15,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-char *get_gpio_name(const char *label);
-int gpio_should_apply(struct gpio_overlay_cfg *cfg);
+struct device_config *get_cur_device(struct global_config *cfg);
+void *load_dtb(struct global_config *cfg, struct device_config *dev, int *dtbsz);
+void *load_overlay(struct global_config *cfg, struct overlay_cfg *overlay, int *sz);

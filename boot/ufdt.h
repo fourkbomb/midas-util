@@ -14,6 +14,5 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-char *get_gpio_name(const char *label);
-int gpio_should_apply(struct gpio_overlay_cfg *cfg);
+#include <libfdt.h>
+struct fdt_header *apply_overlays(struct global_config *cfg, struct device_config *dev, void *dtb_buf, int dtb_size);

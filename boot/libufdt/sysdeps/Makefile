@@ -1,6 +1,6 @@
 PWD := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 CC = $(CROSS_COMPILE)gcc
-CFLAGS = -Wall -Werror -Iinclude
+CFLAGS = -Wall -Werror -Iinclude -fPIC
 SYSDEP_FILES = $(PWD)/libufdt_sysdeps_posix.c
 
 libufdt_sysdeps.a: libufdt_sysdeps_posix.o
