@@ -15,4 +15,5 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <libfdt.h>
-struct fdt_header *apply_overlays(struct global_config *cfg, struct device_config *dev, void *dtb_buf, int dtb_size);
+struct fdt_header *apply_overlays(struct global_config *cfg, struct device_config *dev,
+		void *dtb_buf, int *dtb_size);

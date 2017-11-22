@@ -24,8 +24,9 @@
 #include "ufdt.h"
 #include "util.h"
 
-struct fdt_header *apply_overlays(struct global_config *cfg, struct device_config *dev, void *dtb_buf, int dtb_size) {
-	struct fdt_header *hdr = ufdt_install_blob(dtb_buf, dtb_size);
+struct fdt_header *apply_overlays(struct global_config *cfg, struct device_config *dev,
+		void *dtb_buf, int *dtb_size) {
+	struct fdt_header *hdr = ufdt_install_blob(dtb_buf, *dtb_size);
 
 	if (!dev->overlays)
 		return hdr;
@@ -51,9 +52,9 @@ struct fdt_header *apply_overlays(struct global_config *cfg, struct device_confi
 
 		int sz;
 		void *buf = load_overlay(cfg, o, &sz);
-		hdr = ufdt_apply_overlay(hdr, dtb_size,
+		hdr = ufdt_apply_overlay(hdr, *dtb_size,
 				buf, sz);
-		dtb_size = fdt_totalsize(hdr);
+		*dtb_size = fdt_totalsize(hdr);
 
 skip_apply:
 		n = listNext(dev->overlays, n);

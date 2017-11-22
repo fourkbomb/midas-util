@@ -132,6 +132,18 @@ void *load_overlay(struct global_config *cfg, struct overlay_cfg *overlay, int *
 	return load_blob(dtbfd, sz);
 }
 
+void *load_file(struct global_config *cfg, char *file, int *sz) {
+	char path[256];
+	snprintf(path, 255, "%s/%s", cfg->rootdir, file);
+	int fd = open(path, O_RDONLY);
+	if (fd < 0) {
+		fprintf(stderr, "failed to open zImage %s: %s\n", path, strerror(errno));
+		return NULL;
+	}
+
+	return load_blob(fd, sz);
+}
+
 void *load_dtb(struct global_config *cfg, struct device_config *dev, int *dtbsz) {
 	int i, dtbfd;
 	char path[256];
