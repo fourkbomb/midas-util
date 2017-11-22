@@ -82,13 +82,13 @@ struct device_config *get_cur_device(struct global_config *cfg) {
 }
 
 // this will close the fd
-static void *load_blob(int fd, int *dtbsz) {
+static void *load_blob(int fd, off_t *dtbsz) {
 	off_t length = lseek(fd, 0, SEEK_END);
 	if (length == (off_t)-1) {
 		fprintf(stderr, "lseek to end failed: %s\n", strerror(errno));
 		goto err_open;
 	}
-	length++;
+
 	*dtbsz = length;
 	if (lseek(fd, 0, SEEK_SET) == (off_t)-1) {
 		fprintf(stderr, "lseek to start failed: %s\n", strerror(errno));
@@ -111,7 +111,8 @@ static void *load_blob(int fd, int *dtbsz) {
 		fprintf(stderr, "Failed to read file: %s\n", strerror(errno));
 		goto err_malloc;
 	}
-
+	printf("done\n");
+	close(fd);
 	return buf;
 err_malloc:
 	free(buf);
@@ -120,7 +121,7 @@ err_open:
 	return NULL;
 }
 
-void *load_overlay(struct global_config *cfg, struct overlay_cfg *overlay, int *sz) {
+void *load_overlay(struct global_config *cfg, struct overlay_cfg *overlay, off_t *sz) {
 	char path[256];
 	snprintf(path, 255, "%s/%s/%s", cfg->rootdir, cfg->dtbFolder, overlay->path);
 	int dtbfd = open(path, O_RDONLY);
@@ -132,7 +133,7 @@ void *load_overlay(struct global_config *cfg, struct overlay_cfg *overlay, int *
 	return load_blob(dtbfd, sz);
 }
 
-void *load_file(struct global_config *cfg, char *file, int *sz) {
+void *load_file(struct global_config *cfg, char *file, off_t *sz) {
 	char path[256];
 	snprintf(path, 255, "%s/%s", cfg->rootdir, file);
 	int fd = open(path, O_RDONLY);
@@ -140,11 +141,12 @@ void *load_file(struct global_config *cfg, char *file, int *sz) {
 		fprintf(stderr, "failed to open zImage %s: %s\n", path, strerror(errno));
 		return NULL;
 	}
+	printf("loading blob %s\n", path);
 
 	return load_blob(fd, sz);
 }
 
-void *load_dtb(struct global_config *cfg, struct device_config *dev, int *dtbsz) {
+void *load_dtb(struct global_config *cfg, struct device_config *dev, off_t *dtbsz) {
 	int i, dtbfd;
 	char path[256];
 
@@ -156,6 +158,7 @@ void *load_dtb(struct global_config *cfg, struct device_config *dev, int *dtbsz)
 			continue;
 		}
 		// load_blob closes the fd for us.
+		printf("loading dtb %s\n", path);
 		return load_blob(dtbfd, dtbsz);
 	}
 

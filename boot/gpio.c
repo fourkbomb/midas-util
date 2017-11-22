@@ -112,6 +112,7 @@ int gpio_should_apply(struct gpio_overlay_cfg *cfg) {
 		printf("failed to get line values: %s\n", strerror(errno));
 		return -errno;
 	}
+	printf("%s pin %d == %d\n", cfg->bank, cfg->pin, data.values[0]);
 	return data.values[0] == cfg->value;
 
 err_ioctl:

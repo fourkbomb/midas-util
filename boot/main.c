@@ -15,13 +15,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/syscall.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <byteswap.h>
 
 #include <linux/kexec.h>
 #include <linux/reboot.h>
@@ -32,46 +32,99 @@
 #include "ufdt.h"
 #include "util.h"
 
-// we only support ARM little-endian
-#define cpu_to_be32(x) bswap_32(x)
-
-#define LINE_SIZE 256
+#define LINE_SIZE 160
 #define RAM_STR "System RAM\n"
-#define ALIGN(addr, size) (((addr) + (size)-1) & ((size) - 1))
+#define _ALIGN(addr, size) (((addr) + (size)-1) & ~((size) - 1))
+#define ALIGN(addr, size) _ALIGN(addr, (typeof(addr))(size))
 #define ALIGN_DOWN(addr, size) ((addr) & ~(size))
-static unsigned long get_phys_addr(unsigned long size) {
+
+#define TEXT_OFFSET 0x8000
+static unsigned long long get_phys_addr(unsigned long size) {
 	FILE *fp = fopen("/proc/iomem", "r");
 	if (!fp) {
 		fprintf(stderr, "couldn't open iomem: %s\n", strerror(errno));
 		return (unsigned long)-1;
 	}
 	char buf[LINE_SIZE];
-	unsigned long start, end;
+	unsigned long long start, end;
+	int ok = 0;
 
-	while (fgets(buf, LINE_SIZE, fp) != 0) {
+	printf("fgets loop\n");
+	while (fgets(buf, sizeof(buf), fp) != 0) {
 		int pos;
 		char *name;
-		scanf("%lu-%lu : %n", &start, &end, &pos);
+		int count = sscanf(buf, "%llx-%llx : %n", &start, &end, &pos);
+		if (count != 2) continue;
 		name = buf + pos;
 
-		if (strncmp(name, RAM_STR, sizeof(RAM_STR)) == 0) {
+		if (memcmp(name, RAM_STR, strlen(RAM_STR)) == 0) {
+			ok = 1;
 			break;
 		}
 	}
 
+	if (!ok)
+		return (unsigned long)-1;
+
 	int page_size = getpagesize();
 
-	return ALIGN_DOWN(end - size, page_size);
+	return ALIGN(start + TEXT_OFFSET, page_size);
 }
 
-#define CMDLINE_SZ 1024
-char *mkcmdline(char *root) {
-	char *res = calloc(1024, sizeof(char));
-	// TODO make this configurable
-	snprintf(res, CMDLINE_SZ, "root=%s console=ttySAC2,115200", root);
+struct zimage_header {
+	uint32_t instr[9];
+	uint32_t magic;
+#define ZIMAGE_MAGIC 0x016f2818
+	uint32_t start;
+	uint32_t end;
+};
+
+static off_t check_zimage(void *zimage, off_t sz) {
+	if (sz < 0x34)
+		return -1;
+
+	const struct zimage_header *hdr = (const struct zimage_header *)zimage;
+	if (hdr->magic != ZIMAGE_MAGIC)
+		return -1;
+
+	uint32_t actual_sz = hdr->end - hdr->start;
+	if (actual_sz > sz) {
+		fprintf(stderr, "zImage is truncated: header says length=0x%x bytes, file is 0x%lx bytes.\n", actual_sz, sz);
+	} else if (sz > actual_sz)
+		return actual_sz;
+
+	return sz;
+}
+
+char *mkcmdline(struct global_config *cfg, char *root) {
+	int cfglen = 0;
+	if (cfg->cmdline) cfglen = strlen(cfg->cmdline);
+	cfglen += strlen(root) + strlen("root= ") + 1;
+	char *res = calloc(cfglen, sizeof(char));
+	snprintf(res, cfglen, "root=%s %s", root, cfg->cmdline);
 	return res;
 }
 
+static void dump_kexec_segs(struct kexec_segment *s, int nr_segs) {
+	int i;
+	for (i = 0; i < nr_segs; i++) {
+		printf("Kexec segment %d:\n", i);
+		printf("\tUserspace buffer: 0x%x @ %p\n", s[i].bufsz, s[i].buf);
+		printf("\tDestination buffer: 0x%x @ %p\n", s[i].memsz, s[i].mem);
+	}
+}
+
+static void dump_dtb_to_disk(void *dtb, off_t size) {
+	int fd = open("/mnt/root/debug.dtb", O_WRONLY | O_CREAT | O_TRUNC);
+	if (fd < 0) {
+		fprintf(stderr, "failed to open dtb to dump: %s\n", strerror(errno));
+		return;
+	}
+	printf("dumping dtb\n");
+	write(fd, dtb, size);
+	close(fd);
+	sync();
+}
 
 int main(int argc, char * argv[]) {
 	if (argc < 3) {
@@ -94,39 +147,69 @@ int main(int argc, char * argv[]) {
 		return 2;
 	}
 
+	printf("Preparing to boot on %s/%s...\n", dev->name, dev->codename);
+
+	printf("loading zimage, ramdisk\n");
+
+	// load zImage, ramdisk
+	off_t zimagesz, aligned_zsz;
+	void *zimage = load_file(cfg, cfg->zImageName, &zimagesz);
+	aligned_zsz = ALIGN(zimagesz, getpagesize());
+
+	off_t rdsz, aligned_rdsz;
+	void *ramdisk = load_file(cfg, cfg->initramfsName, &rdsz);
+
+	aligned_rdsz = ALIGN(rdsz, getpagesize());
+
 	// load DTB
-	int dtbsz;
+	off_t dtbsz;
 	void *buf = load_dtb(cfg, dev, &dtbsz);
+	printf("dtb at %p\n", buf);
 	if (buf == NULL) {
 		fprintf(stderr, "couldn't load dtb\n");
 		return 3;
 	}
 	// apply overlays
 	struct fdt_header *dtb = apply_overlays(cfg, dev, buf, &dtbsz);
+	printf("dtb at %p\n", dtb);
 	// TODO: apply serial number, board rev
-	char *cmdline = mkcmdline(argv[2]);
+	char *cmdline = mkcmdline(cfg, argv[2]);
+	printf("applying cmdline %s\n", cmdline);
 	setup_dtb_prop(&dtb, &dtbsz, "chosen", "bootargs", cmdline, strlen(cmdline)+1);
+	printf("dtb at %p\n", dtb);
 	free(cmdline);
 
-	// load zImage, ramdisk
-	int zimagesz, aligned_zsz;
-	void *zimage = load_file(cfg, cfg->zImageName, &zimagesz);
-	aligned_zsz = ALIGN(zimagesz, getpagesize());
+	off_t aligned_dtbsz = ALIGN(dtbsz, getpagesize());
 
-	int rdsz, aligned_rdsz;
-	void *ramdisk = load_file(cfg, cfg->initramfsName, &rdsz);
+	printf("looking for paddr...\n");
+	unsigned long addr = get_phys_addr(aligned_rdsz + aligned_zsz + aligned_dtbsz + (8 * getpagesize()));
+	if (addr == (unsigned long)-1) {
+		printf("failed to get valid paddr\n");
+		return 4;
+	}
 
-	aligned_rdsz = ALIGN(rdsz, getpagesize());
+	printf("paddr 0x%lx\n", addr);
 
-	int	aligned_dtbsz = ALIGN(dtbsz, getpagesize());
+	uint32_t rd_start = addr + aligned_zsz;
+	uint32_t rd_end = addr + aligned_zsz + aligned_rdsz;
+	printf("setting up initrd fdt args\n");
+	setup_dtb_prop_int(&dtb, &dtbsz, "chosen", "linux,initrd-start", rd_start);
+	printf("dtb at %p\n", dtb);
+	setup_dtb_prop_int(&dtb, &dtbsz, "chosen", "linux,initrd-end", rd_end);
+	printf("dtb at %p\n", dtb);
+	aligned_dtbsz = ALIGN(dtbsz, getpagesize());
 
-	unsigned long addr = get_phys_addr(aligned_rdsz + aligned_zsz + aligned_dtbsz);
+	// figure out how much space the zImage might need
+	off_t zimage_len = check_zimage(zimage, zimagesz);
+	if (zimage_len == (off_t)-1) {
+		fprintf(stderr, "invalid zimage\n");
+		return 4;
+	}
 
-	unsigned long rd_start = cpu_to_be32(addr + aligned_zsz);
-	unsigned long rd_end = cpu_to_be32(addr + aligned_zsz + aligned_rdsz);
-	setup_dtb_prop(&dtb, &dtbsz, "chosen", "linux,initrd-start", &rd_start, sizeof(rd_start));
-	setup_dtb_prop(&dtb, &dtbsz, "chosen", "linux,initrd-end", &rd_end, sizeof(rd_end));
+	// assume maximum kernel compression ratio is 4
+	off_t decompress_buf = ALIGN(zimage_len * 4, getpagesize());
 
+	dump_dtb_to_disk(dtb, dtbsz);
 	struct kexec_segment segs[3] = {
 		{
 			.buf = zimage,
@@ -136,15 +219,17 @@ int main(int argc, char * argv[]) {
 		}, {
 			.buf = ramdisk,
 			.bufsz = rdsz,
-			.mem = (void*)addr + aligned_zsz,
+			.mem = (void*)addr + aligned_zsz + decompress_buf,
 			.memsz = aligned_rdsz,
 		}, {
-			.buf = dtb,
+			.buf = (void*)dtb,
 			.bufsz = dtbsz,
-			.mem = (void*)addr + aligned_zsz + aligned_rdsz,
+			.mem = (void*)addr + aligned_zsz + decompress_buf + aligned_rdsz,
 			.memsz = aligned_dtbsz,
 		},
 	};
+	printf("dtb magic: 0x%x\n", *((int*)dtb));
+	dump_kexec_segs(segs, 3);
 
 	// kexec!
 	int ret = syscall(SYS_kexec_load, addr, 3, segs, KEXEC_ARCH_DEFAULT);
