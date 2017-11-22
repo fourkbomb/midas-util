@@ -21,6 +21,7 @@
 #include <sys/syscall.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <byteswap.h>
 
 #include <linux/kexec.h>
 #include <linux/reboot.h>
@@ -30,6 +31,9 @@
 #include "config.h"
 #include "ufdt.h"
 #include "util.h"
+
+// we only support ARM little-endian
+#define cpu_to_be32(x) bswap_32(x)
 
 #define LINE_SIZE 256
 #define RAM_STR "System RAM\n"
@@ -60,9 +64,18 @@ static unsigned long get_phys_addr(unsigned long size) {
 	return ALIGN_DOWN(end - size, page_size);
 }
 
+#define CMDLINE_SZ 1024
+char *mkcmdline(char *root) {
+	char *res = calloc(1024, sizeof(char));
+	// TODO make this configurable
+	snprintf(res, CMDLINE_SZ, "root=%s console=ttySAC2,115200", root);
+	return res;
+}
+
+
 int main(int argc, char * argv[]) {
-	if (argc < 2) {
-		fprintf(stderr, "usage: %s <config.ini>\n", argv[0]);
+	if (argc < 3) {
+		fprintf(stderr, "usage: %s </path/to/config.ini> </dev/root device>\n", argv[0]);
 		return 1;
 	}
 
@@ -90,10 +103,10 @@ int main(int argc, char * argv[]) {
 	}
 	// apply overlays
 	struct fdt_header *dtb = apply_overlays(cfg, dev, buf, &dtbsz);
-	// TODO: apply cmdline, serial number, etc
-
-	int aligned_dtbsz;
-	aligned_dtbsz = ALIGN(dtbsz, getpagesize());
+	// TODO: apply serial number, board rev
+	char *cmdline = mkcmdline(argv[2]);
+	setup_dtb_prop(&dtb, &dtbsz, "chosen", "bootargs", cmdline, strlen(cmdline)+1);
+	free(cmdline);
 
 	// load zImage, ramdisk
 	int zimagesz, aligned_zsz;
@@ -105,7 +118,14 @@ int main(int argc, char * argv[]) {
 
 	aligned_rdsz = ALIGN(rdsz, getpagesize());
 
+	int	aligned_dtbsz = ALIGN(dtbsz, getpagesize());
+
 	unsigned long addr = get_phys_addr(aligned_rdsz + aligned_zsz + aligned_dtbsz);
+
+	unsigned long rd_start = cpu_to_be32(addr + aligned_zsz);
+	unsigned long rd_end = cpu_to_be32(addr + aligned_zsz + aligned_rdsz);
+	setup_dtb_prop(&dtb, &dtbsz, "chosen", "linux,initrd-start", &rd_start, sizeof(rd_start));
+	setup_dtb_prop(&dtb, &dtbsz, "chosen", "linux,initrd-end", &rd_end, sizeof(rd_end));
 
 	struct kexec_segment segs[3] = {
 		{

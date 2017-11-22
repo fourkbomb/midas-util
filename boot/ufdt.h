@@ -17,3 +17,6 @@
 #include <libfdt.h>
 struct fdt_header *apply_overlays(struct global_config *cfg, struct device_config *dev,
 		void *dtb_buf, int *dtb_size);
+int setup_dtb_prop(struct fdt_header **dtb, int *size, const char *node_name,
+		const char *prop_name, const void *val, size_t len);
+
