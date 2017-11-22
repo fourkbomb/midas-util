@@ -57,8 +57,8 @@ char *get_gpio_name(const char *label) {
 			}
 			close(fd);
 
-			printf("got gpiochip %s\n", info.label);
 			if (strcmp(label, info.label) == 0) {
+				closedir(dir);
 				return strdup(info.name);
 			}
 		}
@@ -106,6 +106,7 @@ int gpio_should_apply(struct gpio_overlay_cfg *cfg) {
 
 	struct gpiohandle_data data;
 	ret = ioctl(req.fd, GPIOHANDLE_GET_LINE_VALUES_IOCTL, &data);
+	close(req.fd);
 	close(fd);
 	if (ret < 0) {
 		printf("failed to get line values: %s\n", strerror(errno));
