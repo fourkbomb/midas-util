@@ -2,21 +2,28 @@
 CROSS_COMPILE = arm-linux-
 CC = $(CROSS_COMPILE)gcc
 
-$(shell mkdir -p bin)
+$(shell mkdir -p out/bin out/lib)
 
-all: boot bin/getdtb bin/reboot bin/blank
+all: bootloader getdtb reboot blank
 
-bin/blank: blank.c
-	$(CC) -o bin/blank blank.c
+blank: blank.c
+	$(CC) -o blank blank.c
 
-bin/reboot: reboot.c
-	$(CC) -o bin/reboot reboot.c
+reboot: reboot.c
+	$(CC) -o reboot reboot.c
 
-bin/getdtb: getdtb.c
-	$(CC) -o bin/getdtb getdtb.c
+getdtb: getdtb.c
+	$(CC) -o getdtb getdtb.c
 
-boot:
+bootloader:
 	$(MAKE) -C boot boot
+
+install: all
+	cp blank out/bin
+	cp reboot out/bin
+	cp getdtb out/bin
+	cp boot/boot out/bin/bootloader
+	cp boot/libufdt/libufdt.so out/lib/
 
 clean:
 	rm -f bin/*
