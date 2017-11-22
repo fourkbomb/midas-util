@@ -79,6 +79,8 @@ static int handle_global(struct global_config *cfg, const char *name,
 		cfg->initramfsName = strdup(value);
 	} else if (MATCH("dtbs")) {
 		cfg->dtbFolder = strdup(value);
+	} else if (MATCH("cmdline")) {
+		cfg->cmdline = strdup(value);
 	} else {
 		fprintf(stderr, "unknown global config option %s\n", name);
 		return 0;

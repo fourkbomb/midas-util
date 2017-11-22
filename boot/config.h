@@ -31,6 +31,8 @@ struct global_config {
 	char *initramfsName;
 	// folder with dtbs
 	char *dtbFolder;
+	// kernel cmdline. root=<blah> will automatically be prepended to this string
+	char *cmdline;
 };
 
 // core configuration structure, per-device
