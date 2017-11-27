@@ -190,15 +190,6 @@ int main(int argc, char * argv[]) {
 
 	printf("paddr 0x%lx\n", addr);
 
-	uint32_t rd_start = addr + aligned_zsz;
-	uint32_t rd_end = addr + aligned_zsz + aligned_rdsz;
-	printf("setting up initrd fdt args\n");
-	setup_dtb_prop_int(&dtb, &dtbsz, "chosen", "linux,initrd-start", rd_start);
-	printf("dtb at %p\n", dtb);
-	setup_dtb_prop_int(&dtb, &dtbsz, "chosen", "linux,initrd-end", rd_end);
-	printf("dtb at %p\n", dtb);
-	aligned_dtbsz = ALIGN(dtbsz, getpagesize());
-
 	// figure out how much space the zImage might need
 	off_t zimage_len = check_zimage(zimage, zimagesz);
 	if (zimage_len == (off_t)-1) {
@@ -208,6 +199,14 @@ int main(int argc, char * argv[]) {
 
 	// assume maximum kernel compression ratio is 4
 	off_t decompress_buf = ALIGN(zimage_len * 4, getpagesize());
+	uint32_t rd_start = addr + aligned_zsz + decompress_buf;
+	uint32_t rd_end = addr + aligned_zsz + decompress_buf + aligned_rdsz;
+	printf("setting up initrd fdt args\n");
+	setup_dtb_prop_int(&dtb, &dtbsz, "chosen", "linux,initrd-start", rd_start);
+	printf("dtb at %p\n", dtb);
+	setup_dtb_prop_int(&dtb, &dtbsz, "chosen", "linux,initrd-end", rd_end);
+	printf("dtb at %p\n", dtb);
+	aligned_dtbsz = ALIGN(dtbsz, getpagesize());
 
 	dump_dtb_to_disk(dtb, dtbsz);
 	struct kexec_segment segs[3] = {
