@@ -208,6 +208,8 @@ int main(int argc, char * argv[]) {
 	printf("dtb at %p\n", dtb);
 	aligned_dtbsz = ALIGN(dtbsz, getpagesize());
 
+
+
 	dump_dtb_to_disk(dtb, dtbsz);
 	struct kexec_segment segs[3] = {
 		{
@@ -238,6 +240,7 @@ int main(int argc, char * argv[]) {
 	}
 
 	printf("rebooting...\n");
+	sync();
 	syscall(SYS_reboot, LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_KEXEC, NULL);
 
 	// we should never get here
