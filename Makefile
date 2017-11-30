@@ -18,10 +18,14 @@ getdtb: getdtb.c
 bootloader:
 	$(MAKE) -C boot boot
 
+gpioutil: gpioutil.c
+	$(CC) -o gpioutil gpioutil.c -static
+
 install: all
 	cp blank out/bin
 	cp reboot out/bin
 	cp getdtb out/bin
+	cp gpioutil out/bin
 	cp boot/boot out/bin/bootloader
 	cp boot/libufdt/libufdt.so out/lib/
 
