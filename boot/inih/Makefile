@@ -5,7 +5,7 @@ OBJ = $(SRC:.c=.o)
 OUT = libinih.a
 INCLUDES = -I..
 CCFLAGS = -g -O2
-CC = $(CROSS_COMPILE)gcc
+CC ?= $(CROSS_COMPILE)gcc
 
 default: $(OUT)
 

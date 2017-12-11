@@ -1,10 +1,10 @@
 
 CROSS_COMPILE = arm-linux-
-CC = $(CROSS_COMPILE)gcc
+CC ?= $(CROSS_COMPILE)gcc
 
 $(shell mkdir -p out/bin out/lib)
 
-all: bootloader getdtb reboot blank
+all: bootloader getdtb reboot blank gpioutil
 
 blank: blank.c
 	$(CC) -o blank blank.c
@@ -30,5 +30,5 @@ install: all
 	cp boot/libufdt/libufdt.so out/lib/
 
 clean:
-	rm -f bin/*
+	rm -rf out/* getdtb reboot blank gpioutil
 	$(MAKE) -C boot clean
