@@ -22,6 +22,7 @@
 
 #include "config.h"
 #include "gpio.h"
+#include "llist.h"
 #include "inih/ini.h"
 
 static char **split(const char *str, char *delim, int *sz) {

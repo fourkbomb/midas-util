@@ -26,7 +26,7 @@
 #include <linux/kexec.h>
 #include <linux/reboot.h>
 
-#include <libfdt.h>
+#include <libufdt.h>
 
 #include "config.h"
 #include "ufdt.h"

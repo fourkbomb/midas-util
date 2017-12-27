@@ -1,0 +1,6 @@
+[submodule "boot/inih"]
+	path = boot/inih
+	url = https://github.com/benhoyt/inih
+[submodule "boot/libufdt"]
+	path = boot/libufdt
+	url = https://android.googlesource.com/platform/system/libufdt

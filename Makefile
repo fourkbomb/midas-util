@@ -1,34 +1,29 @@
-
 CROSS_COMPILE = arm-linux-
 CC ?= $(CROSS_COMPILE)gcc
 
-$(shell mkdir -p out/bin out/lib)
+OBJDIR = bin
 
-all: bootloader getdtb reboot blank gpioutil
+all: $(OBJDIR) $(OBJDIR)/bootloader $(OBJDIR)/getdtb $(OBJDIR)/reboot $(OBJDIR)/blank $(OBJDIR)/gpioutil
 
-blank: blank.c
-	$(CC) -o blank blank.c
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
 
-reboot: reboot.c
-	$(CC) -o reboot reboot.c
+$(OBJDIR)/blank: blank.c
+	$(CC) -o $(OBJDIR)/blank blank.c
 
-getdtb: getdtb.c
-	$(CC) -o getdtb getdtb.c
+$(OBJDIR)/reboot: reboot.c
+	$(CC) -o $(OBJDIR)/reboot reboot.c
 
-bootloader:
-	$(MAKE) -C boot boot
+$(OBJDIR)/getdtb: getdtb.c
+	$(CC) -o $(OBJDIR)/getdtb getdtb.c
 
-gpioutil: gpioutil.c
-	$(CC) -o gpioutil gpioutil.c -static
+$(OBJDIR)/bootloader:
+	$(MAKE) -C boot bootloader
+	mv boot/bootloader $(OBJDIR)/
 
-install: all
-	cp blank out/bin
-	cp reboot out/bin
-	cp getdtb out/bin
-	cp gpioutil out/bin
-	cp boot/boot out/bin/bootloader
-	cp boot/libufdt/libufdt.so out/lib/
+$(OBJDIR)/gpioutil: gpioutil.c
+	$(CC) -o $(OBJDIR)/gpioutil gpioutil.c -static
 
 clean:
-	rm -rf out/* getdtb reboot blank gpioutil
+	rm -rf $(OBJDIR)
 	$(MAKE) -C boot clean
