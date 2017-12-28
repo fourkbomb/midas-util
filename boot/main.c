@@ -26,7 +26,7 @@
 #include <linux/kexec.h>
 #include <linux/reboot.h>
 
-#include <libufdt.h>
+#include <libfdt.h>
 
 #include "config.h"
 #include "ufdt.h"
@@ -62,6 +62,8 @@ static unsigned long long get_phys_addr(unsigned long size) {
 			break;
 		}
 	}
+
+    fclose(fp);
 
 	if (!ok)
 		return (unsigned long)-1;
