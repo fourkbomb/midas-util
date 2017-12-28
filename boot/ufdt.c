@@ -154,51 +154,7 @@ int setup_dtb_prop(struct fdt_header **dtb, off_t *size, const char *node_name,
 
 int setup_dtb_prop_int(struct fdt_header **dtb, off_t *size, const char *node_name,
 		const char *prop_name, uint32_t val) {
-	void *buf = (void*)*dtb;
-	off_t sz = *size;
-	int off;
-	int prop_len = 0;
-	const struct fdt_property *prop;
-
-	off = fdt_subnode_offset(buf, 0, node_name);
-	if (off == -FDT_ERR_NOTFOUND) {
-		sz += fdt_node_len(node_name);
-		fdt_set_totalsize(buf, sz);
-		buf = realloc(buf, sz);
-		if (buf == NULL)
-			return -ENOMEM;
-		off = fdt_add_subnode(buf, 0, node_name);
-	}
-
-	if (off < 0) {
-		return -EINVAL;
-	}
-
-	prop = fdt_get_property(buf, off, prop_name, &prop_len);
-	if ((prop == NULL) && (prop_len != -FDT_ERR_NOTFOUND))
-		return -EINVAL;
-	else if (prop == NULL) {
-		sz += fdt_prop_len(prop_name, sizeof(val));
-	} else {
-		if (prop_len < sizeof(val))
-			sz += FDT_TAGALIGN(sizeof(val) - prop_len);
-	}
-
-	if (fdt_totalsize(buf) < sz) {
-		fdt_set_totalsize(buf, sz);
-		buf = realloc(buf, sz);
-		if (buf == NULL)
-			return -ENOMEM;
-	}
-
-	if (fdt_setprop_cell(buf, off, prop_name, val) != 0) {
-		fprintf(stderr, "failed to set prop '%s/%s'", node_name, prop_name);
-		return -EINVAL;
-	}
-
-	*dtb = buf;
-	*size = sz;
-
-	return 0;
+    val = cpu_to_fdt32(val);
+    return setup_dtb_prop(dtb, size, node_name, prop_name, &val, sizeof(val));
 }
 
