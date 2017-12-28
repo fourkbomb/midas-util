@@ -88,7 +88,7 @@ int gpio_should_apply(struct gpio_overlay_cfg *cfg) {
 
 	struct gpiohandle_request req = {
 		.lineoffsets = { cfg->pin, },
-		.flags = GPIOHANDLE_REQUEST_INPUT | GPIOHANDLE_REQUEST_ACTIVE_LOW,
+		.flags = GPIOHANDLE_REQUEST_INPUT,
 		.consumer_label = "midas-boot",
 		.lines = 1,
 	};
