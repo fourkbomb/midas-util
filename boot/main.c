@@ -63,6 +63,8 @@ static unsigned long long get_phys_addr(unsigned long size) {
 		}
 	}
 
+    fclose(fp);
+
 	if (!ok)
 		return (unsigned long)-1;
 

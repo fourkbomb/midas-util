@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "llist.h"
+typedef struct node node_t;
 
 struct global_config *load_config(char *file);
 
