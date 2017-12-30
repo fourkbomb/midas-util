@@ -3,7 +3,7 @@ DIR_LIBUFDT = libufdt
 
 CC ?= $(CROSS_COMPILE)gcc
 
-LOCAL_CFLAGS := -g -Wall -Werror -I$(DIR_INIH) -I$(DIR_LIBUFDT)/include -I$(DIR_LIBUFDT)/sysdeps/include -I.
+LOCAL_CFLAGS := -g -Wall -Werror -I../$(DIR_INIH) -I../$(DIR_LIBUFDT)/include -I../$(DIR_LIBUFDT)/sysdeps/include -I.
 
 bootloader: config.o gpio.o main.o llist.o ufdt.o util.o ini.o libufdt_sysdeps_posix.o ufdt_convert.o ufdt_node.o ufdt_node_pool.o ufdt_overlay.o ufdt_prop_dict.o
 	$(CC) $(CFLAGS) $(LOCAL_CFLAGS) -o $@ main.o config.o gpio.o llist.o ufdt.o util.o ini.o libufdt_sysdeps_posix.o ufdt_convert.o ufdt_node.o ufdt_node_pool.o ufdt_overlay.o ufdt_prop_dict.o -lfdt
