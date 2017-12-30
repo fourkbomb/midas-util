@@ -3,8 +3,8 @@ DIR_LIBUFDT = libufdt
 
 CC ?= $(CROSS_COMPILE)gcc
 
-DIR_INIH = ../$(DIR_INIH)
-DIR_LIBUFDT = ../$(DIR_LIBUFDT)
+DIR_INIH := ../../$(DIR_INIH)
+DIR_LIBUFDT := ../../$(DIR_LIBUFDT)
 
 LOCAL_CFLAGS := -g -Wall -Werror -I$(DIR_INIH) -I$(DIR_LIBUFDT)/include -I$(DIR_LIBUFDT)/sysdeps/include -I.
 
