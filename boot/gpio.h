@@ -14,6 +14,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef _GPIO_H
+#define _GPIO_H
 
 char *get_gpio_name(const char *label);
 int gpio_should_apply(struct gpio_overlay_cfg *cfg);
+
+#endif

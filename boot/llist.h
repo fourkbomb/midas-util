@@ -14,6 +14,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef _LLIST_H
+#define _LLIST_H
 
 typedef struct node node_t;
 
@@ -22,3 +24,5 @@ node_t *listNext(node_t *head, node_t *cur);
 void *listGet(node_t *node);
 void listAppend(node_t *head, void *what);
 void listFree(node_t *head);
+
+#endif

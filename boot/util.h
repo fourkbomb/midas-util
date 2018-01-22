@@ -14,8 +14,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef _UTIL_H
+#define _UTIL_H
 
 struct device_config *get_cur_device(struct global_config *cfg);
 void *load_dtb(struct global_config *cfg, struct device_config *dev, off_t *dtbsz);
 void *load_file(struct global_config *cfg, char *file, off_t *sz);
 void *load_overlay(struct global_config *cfg, struct overlay_cfg *overlay, off_t *sz);
+
+#endif

@@ -15,6 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <libfdt.h>
+
+#ifndef _UFDT_H
+#define _UFDT_H
+
 struct fdt_header *apply_overlays(struct global_config *cfg, struct device_config *dev,
 		void *dtb_buf, off_t *dtb_size);
 int setup_dtb_prop(struct fdt_header **dtb, off_t *size, const char *node_name,
@@ -22,3 +26,4 @@ int setup_dtb_prop(struct fdt_header **dtb, off_t *size, const char *node_name,
 int setup_dtb_prop_int(struct fdt_header **dtb, off_t *size, const char *node_name,
 		const char *prop_name, uint32_t val);
 
+#endif

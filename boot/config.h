@@ -16,6 +16,8 @@
  */
 
 #include "llist.h"
+#ifndef _CONFIG_H
+#define _CONFIG_H
 
 struct global_config *load_config(char *file);
 
@@ -83,4 +85,4 @@ struct overlay_cfg {
 	} u;
 };
 
-
+#endif
