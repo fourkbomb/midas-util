@@ -29,47 +29,9 @@
 #include <libfdt.h>
 
 #include "config.h"
+#include "kernel.h"
 #include "ufdt.h"
 #include "util.h"
-
-#define LINE_SIZE 160
-#define RAM_STR "System RAM\n"
-#define _ALIGN(addr, size) (((addr) + (size)-1) & ~((size) - 1))
-#define ALIGN(addr, size) _ALIGN(addr, (typeof(addr))(size))
-#define ALIGN_DOWN(addr, size) ((addr) & ~(size))
-
-#define TEXT_OFFSET 0x8000
-static unsigned long long get_kernel_base_addr(void) {
-	FILE *fp = fopen("/proc/iomem", "r");
-	if (!fp) {
-		fprintf(stderr, "couldn't open iomem: %s\n", strerror(errno));
-		return (unsigned long)-1;
-	}
-	char buf[LINE_SIZE];
-	unsigned long long start, end;
-	int ok = 0;
-
-	/* FIXME: is it possible that the RAM area selected won't have enough space? */
-	while (fgets(buf, sizeof(buf), fp) != 0) {
-		int pos;
-		char *name;
-		int count = sscanf(buf, "%llx-%llx : %n", &start, &end, &pos);
-		if (count != 2) continue;
-		name = buf + pos;
-
-		if (memcmp(name, RAM_STR, strlen(RAM_STR)) == 0) {
-			ok = 1;
-			break;
-		}
-	}
-
-	if (!ok)
-		return (unsigned long)-1;
-
-	int page_size = getpagesize();
-
-	return ALIGN(start + TEXT_OFFSET, page_size);
-}
 
 struct zimage_header {
 	uint32_t instr[9];
@@ -95,15 +57,6 @@ static off_t check_zimage(void *zimage, off_t sz) {
 		return actual_sz;
 
 	return sz;
-}
-
-char *mkcmdline(struct global_config *cfg, char *root) {
-	int cfglen = 0;
-	if (cfg->cmdline) cfglen = strlen(cfg->cmdline);
-	cfglen += strlen(root) + strlen("root= ") + 1;
-	char *res = calloc(cfglen, sizeof(char));
-	snprintf(res, cfglen, "root=%s %s", root, cfg->cmdline);
-	return res;
 }
 
 static void dump_kexec_segs(struct kexec_segment *s, int nr_segs) {
@@ -152,11 +105,11 @@ int main(int argc, char * argv[]) {
 
 	// load zImage, ramdisk
 	off_t zimagesz, aligned_zsz;
-	void *zimage = load_file(cfg, cfg->zImageName, &zimagesz);
+	void *zimage = load_zimage(cfg, &zimagesz);
 	aligned_zsz = ALIGN(zimagesz, getpagesize());
 
 	off_t rdsz, aligned_rdsz;
-	void *ramdisk = load_file(cfg, cfg->initramfsName, &rdsz);
+	void *ramdisk = load_ramdisk(cfg, &rdsz);
 
 	aligned_rdsz = ALIGN(rdsz, getpagesize());
 
@@ -175,7 +128,7 @@ int main(int argc, char * argv[]) {
 	// TODO: apply serial number, board rev
 
 	// apply cmdline
-	char *cmdline = mkcmdline(cfg, argv[2]);
+	char *cmdline = get_cmdline(cfg, argv[2]);
 	printf("applying cmdline %s\n", cmdline);
 	setup_dtb_prop(&dtb, &dtbsz, "chosen", "bootargs", cmdline, strlen(cmdline)+1);
 	free(cmdline);
