@@ -192,7 +192,6 @@ static int handler(void *user, const char *section, const char *name,
 		for (i = 0; cfg->devices[i] != NULL; i++) {
 			len = strlen(cfg->devices[i]->codename);
 			if (strcmp(cfg->devices[i]->codename, section) == 0) {
-				printf("%s == %s\n", cfg->devices[i]->codename, section);
 				return handle_device(cfg->devices[i], name, value);
 			} else if (strncmp(cfg->devices[i]->codename, section, len) == 0 && strstr(section, ".overlay") != NULL) {
 				return handle_device_overlay(cfg->devices[i], strstr(section, ".overlay")+1, name, value);

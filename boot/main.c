@@ -39,7 +39,7 @@
 #define ALIGN_DOWN(addr, size) ((addr) & ~(size))
 
 #define TEXT_OFFSET 0x8000
-static unsigned long long get_phys_addr(unsigned long size) {
+static unsigned long long get_kernel_base_addr(void) {
 	FILE *fp = fopen("/proc/iomem", "r");
 	if (!fp) {
 		fprintf(stderr, "couldn't open iomem: %s\n", strerror(errno));
@@ -49,7 +49,7 @@ static unsigned long long get_phys_addr(unsigned long size) {
 	unsigned long long start, end;
 	int ok = 0;
 
-	printf("fgets loop\n");
+	/* FIXME: is it possible that the RAM area selected won't have enough space? */
 	while (fgets(buf, sizeof(buf), fp) != 0) {
 		int pos;
 		char *name;
@@ -90,6 +90,7 @@ static off_t check_zimage(void *zimage, off_t sz) {
 	uint32_t actual_sz = hdr->end - hdr->start;
 	if (actual_sz > sz) {
 		fprintf(stderr, "zImage is truncated: header says length=0x%x bytes, file is 0x%lx bytes.\n", actual_sz, sz);
+		return -1;
 	} else if (sz > actual_sz)
 		return actual_sz;
 
@@ -149,8 +150,6 @@ int main(int argc, char * argv[]) {
 
 	printf("Preparing to boot on %s/%s...\n", dev->name, dev->codename);
 
-	printf("loading zimage, ramdisk\n");
-
 	// load zImage, ramdisk
 	off_t zimagesz, aligned_zsz;
 	void *zimage = load_file(cfg, cfg->zImageName, &zimagesz);
@@ -169,26 +168,25 @@ int main(int argc, char * argv[]) {
 		fprintf(stderr, "couldn't load dtb\n");
 		return 3;
 	}
-	// apply overlays
+
+	// apply configured overlays
 	struct fdt_header *dtb = apply_overlays(cfg, dev, buf, &dtbsz);
-	printf("dtb at %p\n", dtb);
+
 	// TODO: apply serial number, board rev
+
+	// apply cmdline
 	char *cmdline = mkcmdline(cfg, argv[2]);
 	printf("applying cmdline %s\n", cmdline);
 	setup_dtb_prop(&dtb, &dtbsz, "chosen", "bootargs", cmdline, strlen(cmdline)+1);
-	printf("dtb at %p\n", dtb);
 	free(cmdline);
 
-	off_t aligned_dtbsz = ALIGN(dtbsz, getpagesize());
-
-	printf("looking for paddr...\n");
-	unsigned long addr = get_phys_addr(aligned_rdsz + aligned_zsz + aligned_dtbsz + (8 * getpagesize()));
+	unsigned long addr = get_kernel_base_addr();
 	if (addr == (unsigned long)-1) {
 		printf("failed to get valid paddr\n");
 		return 4;
 	}
 
-	printf("paddr 0x%lx\n", addr);
+	printf("Loading kernel at 0x%lx\n", addr);
 
 	// figure out how much space the zImage might need
 	off_t zimage_len = check_zimage(zimage, zimagesz);
@@ -203,10 +201,8 @@ int main(int argc, char * argv[]) {
 	uint32_t rd_end = addr + aligned_zsz + decompress_buf + aligned_rdsz;
 	printf("setting up initrd fdt args\n");
 	setup_dtb_prop_int(&dtb, &dtbsz, "chosen", "linux,initrd-start", rd_start);
-	printf("dtb at %p\n", dtb);
 	setup_dtb_prop_int(&dtb, &dtbsz, "chosen", "linux,initrd-end", rd_end);
-	printf("dtb at %p\n", dtb);
-	aligned_dtbsz = ALIGN(dtbsz, getpagesize());
+	off_t aligned_dtbsz = ALIGN(dtbsz, getpagesize());
 
 
 
@@ -229,7 +225,6 @@ int main(int argc, char * argv[]) {
 			.memsz = aligned_dtbsz,
 		},
 	};
-	printf("dtb magic: 0x%x\n", *((int*)dtb));
 	dump_kexec_segs(segs, 3);
 
 	// kexec!
@@ -239,7 +234,7 @@ int main(int argc, char * argv[]) {
 		return 4;
 	}
 
-	printf("rebooting...\n");
+	printf("Booting the zImage...\n");
 	sync();
 	syscall(SYS_reboot, LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_KEXEC, NULL);
 
