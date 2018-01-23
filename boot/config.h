@@ -35,6 +35,17 @@ struct global_config {
 	char *dtbFolder;
 	// kernel cmdline. root=<blah> will automatically be prepended to this string
 	char *cmdline;
+	// android image names
+	char *bootImg;
+	char *recoveryImg;
+
+	// these are not actually stored in config.ini,
+	// but are parsed from the kernel cmdline
+
+	// recovery mode
+	int is_recovery;
+	// low-power charger mode (phone plugged in while powered off)
+	int is_lpm;
 };
 
 // core configuration structure, per-device

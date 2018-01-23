@@ -81,6 +81,10 @@ static int handle_global(struct global_config *cfg, const char *name,
 		cfg->dtbFolder = strdup(value);
 	} else if (MATCH("cmdline")) {
 		cfg->cmdline = strdup(value);
+	} else if (MATCH("bootimage")) {
+		cfg->bootImg = strdup(value);
+	} else if (MATCH("recoveryimage")) {
+		cfg->recoveryImg = strdup(value);
 	} else {
 		fprintf(stderr, "unknown global config option %s\n", name);
 		return 0;

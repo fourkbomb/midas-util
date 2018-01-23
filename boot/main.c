@@ -95,6 +95,14 @@ int main(int argc, char * argv[]) {
 	if (cfg == NULL)
 		return 1;
 
+	/* S-BOOT passes bootmode=2 in recovery mode */
+	cfg->is_recovery = util_has_cmdline("bootmode", "2");
+	/* KK S-BOOT (N7100/N7105, I9305) */
+	cfg->is_lpm = util_has_cmdline("androidboot.mode", "charger");
+	/* <= JB S-BOOT (I9300) */
+	if (!cfg->is_lpm)
+		cfg->is_lpm = util_has_cmdline("lpcharge", "1");
+
 	struct device_config *dev = get_cur_device(cfg);
 	if (dev == NULL) {
 		fprintf(stderr, "couldn't find matching device for current board!\n");

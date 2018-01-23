@@ -20,6 +20,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "bootimage.h"
 #include "config.h"
 #include "kernel.h"
 #include "util.h"
@@ -29,11 +30,18 @@
 #define TEXT_OFFSET 0x8000
 
 void *load_zimage(struct global_config *cfg, off_t *len) {
+	void *ret = load_android_zimage(cfg, len);
+	if (ret != NULL)
+		return ret;
 
 	return load_file(cfg, cfg->zImageName, len);
 }
 
 void *load_ramdisk(struct global_config *cfg, off_t *len) {
+	void *ret = load_android_initrd(cfg, len);
+	if (ret != NULL)
+		return ret;
+
 	return load_file(cfg, cfg->initramfsName, len);
 }
 
@@ -71,9 +79,15 @@ unsigned long long get_kernel_base_addr(void) {
 
 char *get_cmdline(struct global_config *cfg, char *root) {
 	int cfglen = 0;
-	if (cfg->cmdline) cfglen = strlen(cfg->cmdline);
+	char *res;
+	char *cmdline = load_android_cmdline(cfg);
+	if (cmdline == NULL)
+		cmdline = cfg->cmdline;
+	if (cmdline)
+		cfglen += strlen(cmdline);
+
 	cfglen += strlen(root) + strlen("root= ") + 1;
-	char *res = calloc(cfglen, sizeof(char));
+	res = calloc(cfglen, sizeof(char));
 	snprintf(res, cfglen, "root=%s %s", root, cfg->cmdline);
 	return res;
 

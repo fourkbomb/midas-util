@@ -57,7 +57,7 @@ static char *get_bootloader(void) {
 	return strdup(bl_name);
 }
 
-int util_has_cmdline(struct cmdline_overlay_cfg *cfg) {
+int util_has_cmdline(char *key, char *val) {
 	char buf[BUF_SIZE];
 	char *key_loc;
 	char *space_loc;
@@ -69,13 +69,13 @@ int util_has_cmdline(struct cmdline_overlay_cfg *cfg) {
 	}
 
 	while ((ret = read(fd, buf, BUF_SIZE)) > 0) {
-		if ((key_loc = strstr(buf, cfg->key)) != NULL) {
+		if ((key_loc = strstr(buf, key)) != NULL) {
 			key_loc = strstr(key_loc, "=") + 1;
 			space_loc = strstr(buf, " ");
 			space_loc[0] = 0;
 
 			/* is it a match? */
-			if (strncmp(key_loc, cfg->value, strlen(cfg->value)) == 0)
+			if (strncmp(key_loc, val, strlen(val)) == 0)
 				break;
 
 			space_loc[0] = ' ';
