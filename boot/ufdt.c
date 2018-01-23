@@ -72,6 +72,10 @@ struct fdt_header *apply_overlays(struct global_config *cfg, struct device_confi
 					goto skip_apply;
 				// gpio indicates should apply, so apply
 				break;
+			case MODE_CMDLINE:
+				if (!util_has_cmdline(&o->u.cmdline))
+					goto skip_apply;
+				break;
 			default:
 				fprintf(stderr, "overlay '%s' has an invalid mode\n", o->name);
 				goto skip_apply;

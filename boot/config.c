@@ -147,6 +147,20 @@ static int handle_gpio_overlay(struct overlay_cfg *overlay, const char *key,
 	return 1;
 }
 
+static int handle_cmdline_overlay(struct overlay_cfg *overlay, const char *key,
+		const char *value) {
+
+	#define MATCH(k) (strcmp(key, k) == 0)
+	if (MATCH("key")) {
+		overlay->u.cmdline.key = strdup(value);
+	} else if (MATCH("value")) {
+		overlay->u.cmdline.value = strdup(value);
+	} else {
+		return 0;
+	}
+	return 1;
+}
+
 static int handle_device_overlay(struct device_config *dev, const char *oname,
 		const char *key, const char *value) {
 	struct overlay_cfg *overlay = find_or_create_overlay(dev, oname);
@@ -160,17 +174,21 @@ static int handle_device_overlay(struct device_config *dev, const char *oname,
 			overlay->mode = MODE_FIXED;
 		else if (MODE("gpio"))
 			overlay->mode = MODE_GPIO;
+		else if (MODE("cmdline"))
+			overlay->mode = MODE_CMDLINE;
 		else
 			overlay->mode = MODE_INVALID;
 		#undef MODE
 	} else {
-		if (overlay->mode == MODE_GPIO)
+		switch (overlay->mode) {
+		case MODE_GPIO:
 			return handle_gpio_overlay(overlay, key, value);
-		return 0;
+		case MODE_CMDLINE:
+			return handle_cmdline_overlay(overlay, key, value);
+		default:
+			return 0;
+		}
 	}
-
-
-
 	#undef MATCH
 
 	return 1;

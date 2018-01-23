@@ -48,13 +48,47 @@ static char *get_bootloader(void) {
 		}
 	}
 
+	close(fd);
 	if (ret <= 0) {
 		fprintf(stderr, "Failed to find androidboot.bootloader parameter: %s\n", (ret == 0 ? "EOF" : strerror(errno)));
-		close(fd);
 		return NULL;
 	}
 
 	return strdup(bl_name);
+}
+
+int util_has_cmdline(struct cmdline_overlay_cfg *cfg) {
+	char buf[BUF_SIZE];
+	char *key_loc;
+	char *space_loc;
+	int ret;
+	int fd = open("/proc/cmdline", O_RDONLY);
+	if (fd < 0) {
+		fprintf(stderr, "failed to read cmdline: %s\n", strerror(errno));
+		return 0;
+	}
+
+	while ((ret = read(fd, buf, BUF_SIZE)) > 0) {
+		if ((key_loc = strstr(buf, cfg->key)) != NULL) {
+			key_loc = strstr(key_loc, "=") + 1;
+			space_loc = strstr(buf, " ");
+			space_loc[0] = 0;
+
+			/* is it a match? */
+			if (strncmp(key_loc, cfg->value, strlen(cfg->value)) == 0)
+				break;
+
+			space_loc[0] = ' ';
+		}
+	}
+
+	close(fd);
+	if (ret <= 0) {
+		fprintf(stderr, "Failed to find read parameter: %s\n", (ret == 0 ? "EOF" : strerror(errno)));
+		return 0;
+	}
+
+	return 1;
 }
 
 struct device_config *get_cur_device(struct global_config *cfg) {

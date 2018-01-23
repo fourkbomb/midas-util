@@ -59,6 +59,7 @@ enum overlay_mode {
 	MODE_FIXED,
 	// apply this overlay based on a GPIO pin's value
 	MODE_GPIO,
+	MODE_CMDLINE,
 };
 
 struct gpio_overlay_cfg {
@@ -69,6 +70,11 @@ struct gpio_overlay_cfg {
 	// 1 (pin is HIGH) or 0 (pin is LOW).
 	// if pin matches value here, overlay will be applied
 	int value;
+};
+
+struct cmdline_overlay_cfg {
+	char *key;
+	char *value;
 };
 
 // dtb overlay config
@@ -82,6 +88,7 @@ struct overlay_cfg {
 	// mode-specific configuration
 	union {
 		struct gpio_overlay_cfg gpio;
+		struct cmdline_overlay_cfg cmdline;
 	} u;
 };
 
