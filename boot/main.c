@@ -63,8 +63,8 @@ static void dump_kexec_segs(struct kexec_segment *s, int nr_segs) {
 	int i;
 	for (i = 0; i < nr_segs; i++) {
 		printf("Kexec segment %d:\n", i);
-		printf("\tUserspace buffer: 0x%x @ %p\n", s[i].bufsz, s[i].buf);
-		printf("\tDestination buffer: 0x%x @ %p\n", s[i].memsz, s[i].mem);
+		printf("\tUserspace buffer: 0x%x @ %p\n", (unsigned int)s[i].bufsz, s[i].buf);
+		printf("\tDestination buffer: 0x%x @ %p\n", (unsigned int)s[i].memsz, s[i].mem);
 	}
 }
 

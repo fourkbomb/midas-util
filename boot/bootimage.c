@@ -69,8 +69,8 @@ static struct boot_img_hdr *load_and_validate_bootimg(struct global_config *cfg,
 		return NULL;
 
 	if (*len < sizeof(struct boot_img_hdr)) {
-		fprintf(stderr, "Boot image file %s is too small! (Header size 0x%lx, boot image length 0x%lx)\n",
-				name, sizeof(struct boot_img_hdr), *len);
+		fprintf(stderr, "Boot image file %s is too small! (Header size 0x%x, boot image length 0x%x)\n",
+				name, (unsigned int)sizeof(struct boot_img_hdr), (unsigned int)*len);
 		goto err;
 	}
 
@@ -81,7 +81,7 @@ static struct boot_img_hdr *load_and_validate_bootimg(struct global_config *cfg,
 		goto err;
 	}
 
-	printf("Loaded Android boot image, size=0x%lx, product_name=%s, cmdline=%s, ", *len, header->name, header->cmdline);
+	printf("Loaded Android boot image, size=0x%x, product_name=%s, cmdline=%s, ", (unsigned int)*len, header->name, header->cmdline);
 	show_android_info(header);
 
 	return header;
