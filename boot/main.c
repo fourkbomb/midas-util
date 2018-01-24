@@ -68,8 +68,9 @@ static void dump_kexec_segs(struct kexec_segment *s, int nr_segs) {
 	}
 }
 
-static void dump_dtb_to_disk(void *dtb, off_t size) {
-	int fd = open("/mnt/root/debug.dtb", O_WRONLY | O_CREAT | O_TRUNC);
+#ifdef DEBUG
+static void dump_buf_to_disk(char *path, void *dtb, off_t size) {
+	int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC);
 	if (fd < 0) {
 		fprintf(stderr, "failed to open dtb to dump: %s\n", strerror(errno));
 		return;
@@ -79,6 +80,7 @@ static void dump_dtb_to_disk(void *dtb, off_t size) {
 	close(fd);
 	sync();
 }
+#endif
 
 int main(int argc, char * argv[]) {
 	if (argc < 3) {
@@ -115,9 +117,15 @@ int main(int argc, char * argv[]) {
 	off_t zimagesz, aligned_zsz;
 	void *zimage = load_zimage(cfg, &zimagesz);
 	aligned_zsz = ALIGN(zimagesz, getpagesize());
+#ifdef DEBUG
+	dump_buf_to_disk("/mnt/root/zimage", zimage, zimagesz);
+#endif
 
 	off_t rdsz, aligned_rdsz;
 	void *ramdisk = load_ramdisk(cfg, &rdsz);
+#ifdef DEBUG
+	dump_buf_to_disk("/mnt/root/ramdisk", ramdisk, rdsz);
+#endif
 
 	aligned_rdsz = ALIGN(rdsz, getpagesize());
 
@@ -166,8 +174,9 @@ int main(int argc, char * argv[]) {
 	off_t aligned_dtbsz = ALIGN(dtbsz, getpagesize());
 
 
-
-	dump_dtb_to_disk(dtb, dtbsz);
+#ifdef DEBUG
+	dump_buf_to_disk("/mnt/root/dtb", dtb, dtbsz);
+#endif
 	struct kexec_segment segs[3] = {
 		{
 			.buf = zimage,
