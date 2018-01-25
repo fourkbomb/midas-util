@@ -85,10 +85,11 @@ char *get_cmdline(struct global_config *cfg, char *root) {
 		cmdline = cfg->cmdline;
 	if (cmdline)
 		cfglen += strlen(cmdline);
+	else
+		cmdline = "";
 
 	cfglen += strlen(root) + strlen("root= ") + 1;
 	res = calloc(cfglen, sizeof(char));
-	snprintf(res, cfglen, "root=%s %s", root, cfg->cmdline);
+	snprintf(res, cfglen, "root=%s %s", root, cmdline);
 	return res;
-
 }
