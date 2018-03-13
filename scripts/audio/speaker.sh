@@ -1,0 +1,115 @@
+    tinymix set "AIF2DACL Source" "0"
+    tinymix set "AIF2DACR Source" "0"
+    tinymix set "AIF2ADCL Source" "0"
+    tinymix set "AIF2ADCR Source" "1"
+
+    tinymix set "DAC1 Switch" "1"
+
+    tinymix set "IN1L ZC Switch" "0"
+    tinymix set "IN1R ZC Switch" "0"
+    tinymix set "IN2L ZC Switch" "0"
+    tinymix set "IN2R ZC Switch" "0"
+    tinymix set "Output ZC Switch" "0"
+    tinymix set "Speaker ZC Switch" "0"
+    tinymix set "Headphone ZC Switch" "0"
+
+    tinymix set "DAC1L Mixer AIF1.1 Switch" "1"
+    tinymix set "DAC1R Mixer AIF1.1 Switch" "1"
+    tinymix set "DAC1 Switch" "1"
+
+    tinymix set "AIF2DAC2L Mixer Left Sidetone Switch" "1"
+    tinymix set "AIF2DAC2L Mixer Right Sidetone Switch" "0"
+    tinymix set "AIF2DAC2R Mixer Left Sidetone Switch" "0"
+    tinymix set "AIF2DAC2R Mixer Right Sidetone Switch" "1"
+    tinymix set "DAC2 Left Sidetone Volume" "12"
+    tinymix set "DAC2 Right Sidetone Volume" "12"
+    tinymix set "DAC2 Switch" "1"
+
+    tinymix set "Left Headphone Mux" "Mixer"
+    tinymix set "Right Headphone Mux" "Mixer"
+
+    tinymix set "SPKL DAC1 Switch" "1"
+    tinymix set "SPKR DAC1 Switch" "1"
+    tinymix set "SPKL Boost SPKL Switch" "1"
+    tinymix set "SPKL Boost SPKR Switch" "1"
+    tinymix set "SPKR Boost SPKL Switch" "0"
+    tinymix set "SPKR Boost SPKR Switch" "1"
+    tinymix set "Speaker Mixer Volume" "3"
+
+    tinymix set "Left Output Mixer DAC Switch" "1"
+    tinymix set "Right Output Mixer DAC Switch" "1"
+    tinymix set "Earpiece Mixer Left Output Switch" "1"
+    tinymix set "Earpiece Mixer Right Output Switch" "1"
+    tinymix set "Earpiece Switch" "1"
+
+    tinymix set "LINEOUT2N Mixer Left Output Switch" "1"
+    tinymix set "LINEOUT2P Mixer Right Output Switch" "1"
+    tinymix set "LINEOUT1N Mixer Right Output Switch" "1"
+    tinymix set "LINEOUT1P Mixer Left Output Switch" "1"
+
+    tinymix set "AIF1ADC1L Mixer ADC/DMIC Switch" "1"
+    tinymix set "AIF1ADC1R Mixer ADC/DMIC Switch" "1"
+
+    tinymix set "IN1L PGA IN1LP Switch" "1"
+    tinymix set "IN1L PGA IN1LN Switch" "1"
+    tinymix set "MIXINL IN1L Volume" "1"
+    tinymix set "IN1L Switch" "1"
+
+    tinymix set "IN1R PGA IN1RP Switch" "1"
+    tinymix set "IN1R PGA IN1RN Switch" "1"
+    tinymix set "MIXINR IN1R Volume" "1"
+    tinymix set "IN1R Switch" "1"
+
+    tinymix set "IN2R PGA IN2RP Switch" "1"
+    tinymix set "IN2R PGA IN2RN Switch" "1"
+    tinymix set "MIXINR IN2R Volume" "1"
+    tinymix set "IN2R Switch" "1"
+
+    tinymix set "IN2L PGA IN2LP Switch" "1"
+    tinymix set "IN2L PGA IN2LN Switch" "1"
+    tinymix set "MIXINL IN2L Volume" "1"
+    tinymix set "IN2L Switch" "1"
+
+    tinymix set "AIF1ADC1L Mixer ADC/DMIC Switch" "1"
+    tinymix set "AIF1ADC1R Mixer ADC/DMIC Switch" "1"
+    tinymix set "ADCL Mux" "ADC"
+
+    tinymix set "Sidetone HPF Switch" "0"
+
+    tinymix set "ADCL Mux" "DMIC"
+    tinymix set "ADCL Mux" "ADC"
+    tinymix set "ADCR Mux" "DMIC"
+    tinymix set "ADCR Mux" "ADC"
+
+    tinymix set "AIF3ADC Mux" "1"
+
+    tinymix set "HP Switch" "0"
+    tinymix set "SPK Switch" "0"
+    tinymix set "RCV Switch" "0"
+    tinymix set "VPS Switch" "0"
+    tinymix set "HDMI Switch" "0"
+
+    tinymix set "Main Mic Switch" "0"
+    tinymix set "Sub Mic Switch" "0"
+    tinymix set "Headset Mic Switch" "0"
+    tinymix set "FM In Switch" "0"
+
+    tinymix set "AIF1DAC1 EQ Switch" "1"
+    tinymix set "AIF1DAC1 EQ1 Volume" "9"
+    tinymix set "AIF1DAC1 EQ2 Volume" "7"
+    tinymix set "AIF1DAC1 EQ3 Volume" "10"
+    tinymix set "AIF1DAC1 EQ4 Volume" "13"
+    tinymix set "AIF1DAC1 EQ5 Volume" "12"
+
+    tinymix set "SPK Switch" "1"
+        tinymix set "AIF1DAC1 Volume" "96"
+        tinymix set "AIF1 Boost Volume" "0"
+        tinymix set "DAC1 Volume" "96"
+        tinymix set "Left Output Mixer DAC Volume" "7"
+        tinymix set "Right Output Mixer DAC Volume" "7"
+        tinymix set "SPKL DAC1 Volume" "1"
+        tinymix set "SPKR DAC1 Volume" "1"
+        tinymix set "Speaker Mixer Volume" "3"
+        tinymix set "Speaker Boost Volume" "4"
+        tinymix set "Speaker Volume" "57"
+
