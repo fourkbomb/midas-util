@@ -65,14 +65,27 @@ node_t *find_path(struct mixer_config *cfg, char *name, int en) {
 }
 
 int main(int argc, char *argv[]) {
-	if (argc < 4) {
-		fprintf(stderr, "usage: %s <mixer_paths.xml> <path_name> <1|0>\n");
+	if (argc < 2) {
+		fprintf(stderr, "usage: %s <mixer_paths.xml> <path_name> <1|0>\n", argv[0]);
 		return 1;
 	}
 
 	struct mixer_config *cfg = parse_config(argv[1]);
-	struct mixer *mixer = mixer_open(0);
 
+	if (argc < 4) {
+		fprintf(stderr, "usage: %s <mixer_paths.xml> <path_name> <1|0>\n", argv[0]);
+		printf("Available paths:\n");
+		struct mixer_setting *set;
+		node_t *n = NULL;
+
+		while ((n = listNext(cfg->settings, n)) != NULL) {
+			set = listGet(n);
+			printf("%s\n", set->name);
+		}
+		return 2;
+	}
+
+	struct mixer *mixer = mixer_open(0);
 	apply_paths(cfg->default_widgets, mixer);
 
 	node_t *widg = find_path(cfg, argv[2], atoi(argv[3]));
