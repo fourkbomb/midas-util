@@ -36,3 +36,4 @@ install: all
 clean:
 	rm -rf out/* getdtb reboot blank gpioutil
 	$(MAKE) -C boot clean
+	$(MAKE) -C audio clean
