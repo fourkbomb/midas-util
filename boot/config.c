@@ -69,7 +69,6 @@ static int handle_global(struct global_config *cfg, const char *name,
 		for (i = 0; i < count; i++) {
 			cfg->devices[i] = malloc(sizeof(struct device_config));
 			cfg->devices[i]->codename = devices[i];
-			cfg->devices[i]->overlays = NULL;
 		}
 	} else if (MATCH("rootdir")) {
 		cfg->rootdir = strdup(value);
@@ -110,23 +109,23 @@ static int handle_device(struct device_config *dev, const char *name,
 	return 1;
 }
 
-static struct overlay_cfg *find_or_create_overlay(struct device_config *dev, const char *name) {
-	node_t *n = dev->overlays;
+static struct overlay_cfg *find_or_create_overlay(struct global_config *cfg, const char *name) {
+	node_t *n = cfg->overlays;
 	struct overlay_cfg *overlay;
 
 	while (n != NULL) {
 		overlay = (struct overlay_cfg *)listGet(n);
 		if (strcmp(name, overlay->name) == 0)
 			return overlay;
-		n = listNext(dev->overlays, n);
+		n = listNext(cfg->overlays, n);
 	}
 
 	overlay = calloc(1, sizeof(*overlay));
 	overlay->name = strdup(name);
-	if (dev->overlays != NULL)
-		listAppend(dev->overlays, overlay);
+	if (cfg->overlays != NULL)
+		listAppend(cfg->overlays, overlay);
 	else
-		dev->overlays = listCreate(overlay);
+		cfg->overlays = listCreate(overlay);
 	return overlay;
 }
 
@@ -165,9 +164,9 @@ static int handle_cmdline_overlay(struct overlay_cfg *overlay, const char *key,
 	return 1;
 }
 
-static int handle_device_overlay(struct device_config *dev, const char *oname,
-		const char *key, const char *value) {
-	struct overlay_cfg *overlay = find_or_create_overlay(dev, oname);
+static int handle_overlay(struct global_config *cfg, const char *section, const char *key,
+		const char *value) {
+	struct overlay_cfg *overlay = find_or_create_overlay(cfg, section);
 
 	#define MATCH(k) (strcmp(key, k) == 0)
 	if (MATCH("path")) {
@@ -183,6 +182,8 @@ static int handle_device_overlay(struct device_config *dev, const char *oname,
 		else
 			overlay->mode = MODE_INVALID;
 		#undef MODE
+	} else if (MATCH("devices")) {
+		overlay->devices = split(value, ",", &overlay->ndevices);
 	} else {
 		switch (overlay->mode) {
 		case MODE_GPIO:
@@ -196,6 +197,7 @@ static int handle_device_overlay(struct device_config *dev, const char *oname,
 	#undef MATCH
 
 	return 1;
+
 }
 
 static int handler(void *user, const char *section, const char *name,
@@ -205,18 +207,17 @@ static int handler(void *user, const char *section, const char *name,
 	#define MATCH(sect) (strcmp(section, sect) == 0)
 	if (MATCH("global"))
 		return handle_global(cfg, name, value);
+	else if (!strncmp("overlay", section, 7))
+		return handle_overlay(cfg, section, name, value);
 	else {
 		if (!cfg->devices) {
 			fprintf(stderr, "global section should be first!\n");
 			return 0;
 		}
-		int i, len;
+		int i;
 		for (i = 0; cfg->devices[i] != NULL; i++) {
-			len = strlen(cfg->devices[i]->codename);
 			if (strcmp(cfg->devices[i]->codename, section) == 0) {
 				return handle_device(cfg->devices[i], name, value);
-			} else if (strncmp(cfg->devices[i]->codename, section, len) == 0 && strstr(section, ".overlay") != NULL) {
-				return handle_device_overlay(cfg->devices[i], strstr(section, ".overlay")+1, name, value);
 			}
 		}
 	}
@@ -234,6 +235,7 @@ struct global_config *load_config(char *file) {
 		return NULL;
 	} else if (ret > 0) {
 		fprintf(stderr, "Parse error occured on line %d\n", ret);
+		return NULL;
 	}
 
 

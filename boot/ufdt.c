@@ -54,15 +54,26 @@ struct fdt_header *apply_overlays(struct global_config *cfg, struct device_confi
 	struct fdt_header *hdr = ufdt_install_blob(dtb_buf, *dtb_size);
 	struct fdt_header *new;
 
-	if (!dev->overlays)
+	if (!cfg->overlays)
 		return hdr;
 
-	node_t *n = dev->overlays;
+	node_t *n = cfg->overlays;
 	struct overlay_cfg *o;
 
 	while (n != NULL) {
 		o = listGet(n);
 		int applied = 0;
+		int should_apply = 0;
+		for (int i = 0; i < o->ndevices; i++) {
+			if (strcmp(o->devices[i], dev->codename) == 0) {
+				should_apply = 1;
+				break;
+			}
+		}
+
+		if (!should_apply)
+			goto skip_apply;
+
 		switch (o->mode) {
 			case MODE_FIXED:
 				// always apply
@@ -99,7 +110,7 @@ struct fdt_header *apply_overlays(struct global_config *cfg, struct device_confi
 skip_apply:
 		if (!applied)
 			printf("not applying overlay '%s'\n", o->name);
-		n = listNext(dev->overlays, n);
+		n = listNext(cfg->overlays, n);
 	}
 
 	return hdr;

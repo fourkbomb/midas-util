@@ -24,6 +24,8 @@ struct global_config *load_config(char *file);
 struct global_config {
 	// list of devices
 	struct device_config **devices;
+	// overlays - linked list
+	node_t *overlays;
 	// top dir, containing kernel/initramfs/dtbs
 	char *rootdir;
 	// next three members are relative to rootdir
@@ -58,8 +60,6 @@ struct device_config {
 	char **models;
 	// dtbs to try, relative to dtbFolder
 	char **dtbs;
-	// overlays - linked list
-	node_t *overlays;
 };
 
 // overlay mode
@@ -90,6 +90,9 @@ struct cmdline_overlay_cfg {
 
 // dtb overlay config
 struct overlay_cfg {
+	// devices this overlay applies to
+	char **devices;
+	int ndevices;
 	// path of overlay, relative to dtbFolder
 	char *path;
 	// section name in ini
