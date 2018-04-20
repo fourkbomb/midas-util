@@ -25,71 +25,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "cmdline.h"
 #include "config.h"
-
-#define BUF_SIZE 1024
-#define BL_NAME_LEN (sizeof("I9300") - 1)
-
-static char *get_bootloader(void) {
-	int ret;
-	char buf[BUF_SIZE];
-	char *bl_name;
-	int fd = open("/proc/cmdline", O_RDONLY);
-	if (fd < 0) {
-		fprintf(stderr, "Failed to read cmdline: %s\n", strerror(errno));
-		return NULL;
-	}
-
-	while ((ret = read(fd, buf, BUF_SIZE)) > 0) {
-		if ((bl_name = strstr(buf, "androidboot.bootloader=")) != NULL) {
-			bl_name = strstr(bl_name, "=") + 1;
-			bl_name[BL_NAME_LEN] = 0; // hack
-			break;
-		}
-	}
-
-	close(fd);
-	if (ret <= 0) {
-		fprintf(stderr, "Failed to find androidboot.bootloader parameter: %s\n", (ret == 0 ? "EOF" : strerror(errno)));
-		return NULL;
-	}
-
-	return strdup(bl_name);
-}
-
-int util_has_cmdline(char *key, char *val) {
-	char buf[BUF_SIZE];
-	char *key_loc;
-	char *space_loc;
-	int ret;
-	int fd = open("/proc/cmdline", O_RDONLY);
-	if (fd < 0) {
-		fprintf(stderr, "failed to read cmdline: %s\n", strerror(errno));
-		return 0;
-	}
-
-	while ((ret = read(fd, buf, BUF_SIZE)) > 0) {
-		if ((key_loc = strstr(buf, key)) != NULL) {
-			key_loc = strstr(key_loc, "=") + 1;
-			space_loc = strstr(buf, " ");
-			space_loc[0] = 0;
-
-			/* is it a match? */
-			if (strncmp(key_loc, val, strlen(val)) == 0)
-				break;
-
-			space_loc[0] = ' ';
-		}
-	}
-
-	close(fd);
-	if (ret <= 0) {
-		fprintf(stderr, "Failed to find read parameter: %s\n", (ret == 0 ? "EOF" : strerror(errno)));
-		return 0;
-	}
-
-	return 1;
-}
 
 struct device_config *get_cur_device(struct global_config *cfg) {
 	char *blname = get_bootloader();
@@ -102,7 +39,7 @@ struct device_config *get_cur_device(struct global_config *cfg) {
 		ret = cfg->devices[i];
 
 		for (j = 0; ret->models[j]; j++) {
-			if (strncmp(ret->models[j], blname, BL_NAME_LEN) == 0) {
+			if (strcmp(ret->models[j], blname) == 0) {
 				done = 1;
 				break;
 			}
@@ -110,6 +47,7 @@ struct device_config *get_cur_device(struct global_config *cfg) {
 		if (done) break;
 	}
 
+	free(blname);
 	if (!done)
 		return NULL;
 	return ret;

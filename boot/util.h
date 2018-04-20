@@ -24,6 +24,4 @@ struct device_config *get_cur_device(struct global_config *cfg);
 void *load_dtb(struct global_config *cfg, struct device_config *dev, off_t *dtbsz);
 void *load_file(struct global_config *cfg, char *file, off_t *sz);
 void *load_overlay(struct global_config *cfg, struct overlay_cfg *overlay, off_t *sz);
-
-int util_has_cmdline(char *key, char *value);
 #endif

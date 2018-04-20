@@ -20,6 +20,7 @@
 #include <libfdt.h>
 #include <ufdt_overlay.h>
 
+#include "cmdline.h"
 #include "config.h"
 #include "gpio.h"
 #include "ufdt.h"
@@ -84,7 +85,7 @@ struct fdt_header *apply_overlays(struct global_config *cfg, struct device_confi
 				// gpio indicates should apply, so apply
 				break;
 			case MODE_CMDLINE:
-				if (!util_has_cmdline(o->u.cmdline.key, o->u.cmdline.value))
+				if (!cmdline_check_value(o->u.cmdline.key, o->u.cmdline.value))
 					goto skip_apply;
 				break;
 			default:
