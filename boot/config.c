@@ -84,6 +84,11 @@ static int handle_global(struct global_config *cfg, const char *name,
 		cfg->bootImg = strdup(value);
 	} else if (MATCH("recoveryimage")) {
 		cfg->recoveryImg = strdup(value);
+	} else if (MATCH("cmdline_keep")) {
+		int count;
+		char **keep = split(value, ",", &count);
+		cfg->keep_cmdline = keep;
+		cfg->keep_cmdline_len = count;
 	} else {
 		fprintf(stderr, "unknown global config option %s\n", name);
 		return 0;

@@ -26,6 +26,9 @@ struct global_config {
 	struct device_config **devices;
 	// overlays - linked list
 	node_t *overlays;
+	// cmdline parameters to preserve
+	char **keep_cmdline;
+	int keep_cmdline_len;
 	// top dir, containing kernel/initramfs/dtbs
 	char *rootdir;
 	// next three members are relative to rootdir
